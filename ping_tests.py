@@ -19,7 +19,16 @@ def ping(host):
     except Exception as e:
         print(f"Error pinging {host}: {e}")
         return None
-hosts = ["google.com", "cisco.com" , "visa.com" , "microsoft.com" , "hi231..comgr" , "test"]
-for host in hosts:
-    latency = ping(host)
-    print(f"{host}: {latency}")
+
+print("Give the name of the companies you want to ping separated with space")
+
+companies = []
+for host in (input().split()):
+    companies.append(host)
+
+if companies:
+    for host in companies:
+        latency = ping(host)
+        print(f"{host}: {latency}")
+else:
+    print("No companies found")
