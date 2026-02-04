@@ -1,6 +1,8 @@
 import subprocess
 import re
-
+import platform
+import csv
+import os
 
 def ping(host , ping_count):
     success_count = 0
@@ -10,7 +12,13 @@ def ping(host , ping_count):
     message = ""
     for i in range(ping_count):
         try:
-            result = subprocess.run(["ping", "-n", "1", host], capture_output=True, text=True)
+            if platform.system() == "Windows":
+                plat = "-n"
+            elif platform.system() == "Linux":
+                plat = "-c"
+            else:
+                plat = "-c"  #defensive coding
+            result = subprocess.run(["ping", plat, "1", host], capture_output=True, text=True) #Capturing CompletedProcess in result
             if "could not find host" in result.stdout.lower():
                 message = f"Check for a typo, couldn't find the '{host}' on the internet"
                 failure_count += 1
@@ -44,6 +52,7 @@ def ping(host , ping_count):
            "avg_latency": average_latency,
            "message": message}
 def main():
+    all_results = []
     try:
         print("How many times you want to ping each host?")
         ping_count = int(input())
@@ -66,6 +75,7 @@ def main():
             if hosts:
                 for host in hosts:
                     result = ping(host,ping_count)
+                    result['total_attempted_pings'] = result['success'] + result['failure'] + result['timeout']
                     if result['avg_latency'] != None:
                         print(f"{host}: {result['avg_latency']} ms")
                     if result['timeout'] > 0 and result['success'] == 0:
@@ -75,16 +85,28 @@ def main():
                     success += result['success']
                     failure += result['failure']
                     timeouts += result['timeout']
+                    if result['timeout'] > 0 and result['success'] == 0 and not result['message']:
+                        result['message'] = f'Host is reachable but no responses received'
+                    all_results.append(result)
             else:
                 print("No hosts found")
 
             total_attempted_pings = success + failure + timeouts
-
             print(f'Total number of attempted pings: {total_attempted_pings},\nSuccessful pings: {success} \nFailed attempts: {failure}\nTimeouts: {timeouts}')
         else:
             print("Number should be a positive")
     except ValueError:
         print("You must enter a valid number")
+
+    file_name = 'Network_Monitoring_logs.csv'
+    file_exists = os.path.isfile(file_name)
+    with open('Network_Monitoring_logs.csv' , 'a', newline='') as csvfile:
+            fieldnames = ['host', 'total_attempted_pings','success', 'failure', 'timeout' , 'avg_latency', 'message']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            if not file_exists:
+                writer.writeheader()
+            writer.writerows(all_results)
+
 if __name__ == "__main__": #making importing safe/with no troubles
     main()
 
