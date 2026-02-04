@@ -18,11 +18,11 @@ def ping(host , ping_count):
     else:
         plat = "-c"  # defensive coding
 
-    for i in range(ping_count):
+    for i in range(ping_count):  #Optimization Note: Can use threads instead of a synchronous loop , to be able to do the pings in parallel
         try:
             result = subprocess.run(["ping", plat, "1", host], capture_output=True, text=True) #Capturing CompletedProcess in result
             if "could not find host" in result.stdout.lower():
-                message = f"\033[91mCheck for a typo, couldn't find the '{host}' on the internet\033[0m"
+                message = f"Check for a typo, couldn't find the '{host}' on the internet"
                 failure_count += 1
                 break #stop pinging
             if "timed out" in result.stdout.lower():
@@ -83,7 +83,10 @@ def main():
                     if result['timeout'] > 0 and result['success'] == 0:
                         print(f"\033[93m{host}: Host is reachable but no responses received, Timeouts: {result['timeout']}\033[0m")
                     if result['message']:
-                        print(result['message'])
+                        if 'Check for a typo' in result['message']:
+                            print(f"\033[91m{result['message']}\033[0m")
+                        else:
+                            print(result['message'])
                     success += result['success']
                     failure += result['failure']
                     timeouts += result['timeout']
