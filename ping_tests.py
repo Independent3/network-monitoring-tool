@@ -10,24 +10,26 @@ def ping(host , ping_count):
     timeout_count = 0
     latencies = []
     message = ""
+
+    if platform.system() == "Windows":
+        plat = "-n"
+    elif platform.system() == "Linux":
+        plat = "-c"
+    else:
+        plat = "-c"  # defensive coding
+
     for i in range(ping_count):
         try:
-            if platform.system() == "Windows":
-                plat = "-n"
-            elif platform.system() == "Linux":
-                plat = "-c"
-            else:
-                plat = "-c"  #defensive coding
             result = subprocess.run(["ping", plat, "1", host], capture_output=True, text=True) #Capturing CompletedProcess in result
             if "could not find host" in result.stdout.lower():
-                message = f"Check for a typo, couldn't find the '{host}' on the internet"
+                message = f"\033[91mCheck for a typo, couldn't find the '{host}' on the internet\033[0m"
                 failure_count += 1
                 break #stop pinging
             if "timed out" in result.stdout.lower():
                 timeout_count += 1
                 continue #skip
             if result.returncode != 0:
-                message = 'Ping Failed'
+                message = '\033[91mPing Failed\033[0m'
                 failure_count += 1
                 break
             match = re.search(r"time=(\d+)ms", result.stdout)
@@ -38,7 +40,7 @@ def ping(host , ping_count):
             else:
                 failure_count += 1
         except Exception as e:
-            message = f"Error pinging {host}: {e}"
+            message = f"\033[91mError pinging {host}: {e}\033[0m"
             failure_count += 1
             break
     if latencies:
@@ -70,16 +72,16 @@ def main():
                         if host not in hosts:  #not really needed since i use a set() for this
                             hosts.add(host)
                     else:
-                        print(f'Wrong input. Host name should start with A-Z or 0-9 for, {host}')
+                        print(f'\033[91mWrong input. Host name should start with A-Z or 0-9 for, {host}\033[0m')
                         failure += 1
             if hosts:
                 for host in hosts:
                     result = ping(host,ping_count)
                     result['total_attempted_pings'] = result['success'] + result['failure'] + result['timeout']
                     if result['avg_latency'] != None:
-                        print(f"{host}: {result['avg_latency']} ms")
+                        print(f"\033[92m{host}: {result['avg_latency']} ms\033[0m")
                     if result['timeout'] > 0 and result['success'] == 0:
-                        print(f"{host}: Host is reachable but no responses received, Timeouts: {result['timeout']}")
+                        print(f"\033[93m{host}: Host is reachable but no responses received, Timeouts: {result['timeout']}\033[0m")
                     if result['message']:
                         print(result['message'])
                     success += result['success']
@@ -89,14 +91,14 @@ def main():
                         result['message'] = f'Host is reachable but no responses received'
                     all_results.append(result)
             else:
-                print("No hosts found")
+                print("\033[91mNo hosts found\033[0m")
 
             total_attempted_pings = success + failure + timeouts
-            print(f'Total number of attempted pings: {total_attempted_pings},\nSuccessful pings: {success} \nFailed attempts: {failure}\nTimeouts: {timeouts}')
+            print(f'Total number of attempted pings: {total_attempted_pings}\n\033[92mSuccessful pings: {success}\033[0m \n\033[91mFailed attempts: {failure}\n\033[0m\033[93mTimeouts: {timeouts}\033[0m')
         else:
-            print("Number should be a positive")
+            print("\033[91mNumber should be a positive\033[0m")
     except ValueError:
-        print("You must enter a valid number")
+        print("\033[91mYou must enter a valid number\033[0m")
 
     file_name = 'Network_Monitoring_logs.csv'
     file_exists = os.path.isfile(file_name)
