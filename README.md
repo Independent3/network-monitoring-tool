@@ -102,6 +102,6 @@ You will be prompted to:
 
 **Nikolaos Vasilakopoulos**  
 
-- 🌍 **Portfolio:** (https://github.com/Independent3)
+- 🌍 **Portfolio:** (https://github.com/Independent3 , https://www.linkedin.com/in/nikolaos-vasilakopoulos-85714b3b0/)
   
 - 📧 **Email:** nickvasilakopoulos@rocketmail.com
